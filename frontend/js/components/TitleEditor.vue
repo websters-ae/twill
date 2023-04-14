@@ -102,7 +102,15 @@
       },
       title: function () {
         // Get the title from the store
-        const title = this.fieldValueByName(this.name) ? this.fieldValueByName(this.name) : ''
+        let title = this.fieldValueByName('title')
+        const titleKsa = this.fieldValueByName('title_ksa')
+        const titleKuwait = this.fieldValueByName('title_kuwait')
+        if ((typeof titleKsa === 'string' && titleKsa) || titleKsa[this.currentLocale.value]) {
+          title = titleKsa
+        }
+        if ((typeof titleKuwait === 'string' && titleKuwait) || titleKuwait[this.currentLocale.value]) {
+          title = titleKuwait
+        }
         const titleValue = typeof title === 'string' ? title : title[this.currentLocale.value]
         return titleValue || this.warningMessage
       },

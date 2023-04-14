@@ -1471,11 +1471,27 @@ abstract class ModuleController extends Controller
 
         $baseUrl = $item->urlWithoutSlug ?? $this->getPermalinkBaseUrl();
 
+        $titleColumnKey = '';
+
+        if ($item[$this->titleColumnKey]) {
+            $titleColumnKey = $this->titleColumnKey;
+        }
+
+        if ($item['title_ksa']) {
+            $titleColumnKey = 'title_ksa';
+            $this->titleColumnKey = 'title_ksa';
+        }
+
+        if ($item['title_kuwait']) {
+            $titleColumnKey = 'title_kuwait';
+            $this->titleColumnKey = 'title_kuwait';
+        }
+
         $data = [
             'item' => $item,
             'moduleName' => $this->moduleName,
             'routePrefix' => $this->routePrefix,
-            'titleFormKey' => $this->titleFormKey ?? $this->titleColumnKey,
+            'titleFormKey' => $this->titleFormKey ?? $titleColumnKey,
             'publish' => $item->canPublish ?? true,
             'publishDate24Hr' => Config::get('twill.publish_date_24h') ?? false,
             'publishDateFormat' => Config::get('twill.publish_date_format') ?? null,
