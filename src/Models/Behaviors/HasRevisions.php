@@ -1,6 +1,7 @@
 <?php
 
 namespace A17\Twill\Models\Behaviors;
+use Illuminate\Support\Str;
 
 trait HasRevisions
 {
@@ -11,7 +12,27 @@ trait HasRevisions
      */
     public function revisions()
     {
-        return $this->hasMany($this->getRevisionModel())->orderBy('created_at', 'desc');
+        // return $this->hasMany($this->getRevisionModel())->orderBy('created_at', 'desc');
+
+        $modelClass = (string) $this->getRevisionModel();
+        $model = new $modelClass;
+        $tableName = strtolower(class_basename($this));
+        $pluralized = Str::plural($tableName);
+
+        $sorted = $model
+            ->select(['id', 'created_at'])
+            ->where($tableName.'_id', $this->id)
+            ->orderByDesc('created_at')
+            ->limit(200);
+    
+        $result = $this->hasMany($model, $tableName.'_id')
+            ->join($pluralized, "{$pluralized}.id", '=', "{$model->getTable()}.{$tableName}_id")
+            ->joinSub($sorted, 'sorted', function ($join) use ($model) {
+                $join->on("{$model->getTable()}.id", '=', 'sorted.id');
+            })
+            ->orderByDesc('sorted.created_at');
+
+        return $result;
     }
 
     /**
@@ -34,11 +55,12 @@ trait HasRevisions
      */
     public function revisionsArray()
     {
-        return $this->revisions->map(function ($revision) {
+        return $this->revisions->map(function ($revision, $index) {
             return [
                 'id' => $revision->id,
                 'author' => $revision->user->name ?? 'Unknown',
                 'datetime' => $revision->created_at->toIso8601String(),
+                'label' => $index === 0 ? twillTrans('twill::lang.publisher.current') : '',
             ];
         })->toArray();
     }
