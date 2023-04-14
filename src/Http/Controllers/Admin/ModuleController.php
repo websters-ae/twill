@@ -633,8 +633,8 @@ abstract class ModuleController extends Controller
             return View::exists($view);
         });
 
-        $revision = $item->revisions()->where('id', $this->request->get('revisionId'))->first();
-        $date = $revision->created_at->toDayDateTimeString();
+        $tablePrefix = Str::singular($this->moduleName);
+        $revision = $item->revisions()->where("{$tablePrefix}_revisions.id", $this->request->get('revisionId'))->first();
 
         Session::flash('restoreMessage', twillTrans('twill::lang.publisher.restore-message', ['user' => $revision->byUser, 'date' => $date]));
 
