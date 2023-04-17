@@ -354,7 +354,7 @@ abstract class ModuleRepository
             return false;
         }
 
-        if (($revision = $object->revisions()->orderBy('created_at', 'desc')->first()) === null) {
+        if (($revision = $object->revisions()->orderBy('sorted.created_at', 'desc')->first()) === null) {
             return false;
         }
 
