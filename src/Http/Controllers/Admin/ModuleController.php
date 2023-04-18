@@ -986,6 +986,10 @@ abstract class ModuleController extends Controller
 
             $name = $columnsData[$this->titleColumnKey];
 
+            if ($this->titleColumnKey === 'title') {
+                $name = $columnsData['title_kuwait'] ?? $columnsData['title_ksa'] ?? $columnsData[$this->titleColumnKey];
+            }
+
             if (empty($name)) {
                 if ($this->moduleHas('translations')) {
                     $fallBackTranslation = $item->translations()->where('active', true)->first();
@@ -1143,7 +1147,15 @@ abstract class ModuleController extends Controller
 
         unset($this->indexColumns[$this->titleColumnKey]);
 
-        foreach ($this->indexColumns as $column) {
+        $countries = ['title_ksa', 'title_kuwait'];
+        foreach ($countries as $country) {
+            if ($visibleColumns && in_array($country, $visibleColumns)) {
+                $key = array_search($country, $visibleColumns);
+                unset($visibleColumns[$key]);
+            }
+        }
+
+        foreach (Arr::except($this->indexColumns, $countries) as $column) {
             $columnName = isset($column['relationship'])
             ? $column['relationship'] . ucfirst($column['field'])
             : (isset($column['nested']) ? $column['nested'] : $column['field']);

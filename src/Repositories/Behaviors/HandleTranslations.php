@@ -97,6 +97,14 @@ trait HandleTranslations
                 foreach ($attributes as $attribute) {
                     if (isset($scopes[$attribute]) && is_string($scopes[$attribute])) {
                         $q->where($attribute, 'like', '%' . $scopes[$attribute] . '%');
+
+                        if ($attribute === 'title' && in_array('title_ksa', $attributes)) {
+                            $q->orWhere('title_ksa', 'like', '%' . $scopes[$attribute] . '%');
+                        }
+
+                        if ($attribute === 'title' && in_array('title_kuwait', $attributes)) {
+                            $q->orWhere('title_kuwait', 'like', '%' . $scopes[$attribute] . '%');
+                        }
                     }
                 }
             });
