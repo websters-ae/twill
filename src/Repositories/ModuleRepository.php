@@ -185,10 +185,21 @@ abstract class ModuleRepository
 
         $translatedAttributes = $this->model->translatedAttributes ?? [];
 
+        $modelClass = get_class($this->model);
+
+        if (!in_array($modelClass, ['App\Models\Category', 'App\Models\Agent']) && in_array('title', $fields)) {
+            array_push($fields, 'title_ksa', 'title_kuwait');
+        }
+
         foreach ($fields as $field) {
             if (in_array($field, $translatedAttributes)) {
                 $query->orWhereHas('translations', function ($q) use ($field, $search) {
-                    $q->where($field, $this->getLikeOperator(), "%{$search}%");
+                    $q->where(function($query) use ($field, $search) {
+                        $query->where($field, $this->getLikeOperator(), "%{$search}%");
+                        if ($field === 'title_ksa' || $field === 'title_kuwait') {
+                            $query->orWhere('title', $this->getLikeOperator(), "%{$search}%");
+                        }
+                    });
                 });
             } else {
                 $query->orWhere($field, $this->getLikeOperator(), "%{$search}%");

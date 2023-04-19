@@ -113,7 +113,8 @@ class DashboardController extends Controller
         })->map(function ($module) use ($request) {
             $repository = $this->getRepository($module['name'], $module['repository'] ?? null);
 
-            $found = $repository->cmsSearch($request->get('search'), $module['search_fields'] ?? ['title'])->take(10);
+            $searchParams = $module['search_fields'] ?? ['title'];
+            $found = $repository->cmsSearch($request->get('search'), $searchParams)->take(10);
 
             return $found->map(function ($item) use ($module) {
                 try {
@@ -129,7 +130,7 @@ class DashboardController extends Controller
                     'published' => $item->published,
                     'activity' => twillTrans('twill::lang.dashboard.search.last-edit'),
                     'date' => $item->updated_at->toIso8601String(),
-                    'title' => $item->titleInDashboard ?? $item->title,
+                    'title' => $item->titleInDashboard ?? $item->title_kuwait ?? $item->title_ksa ?? $item->title,
                     'author' => $author,
                     'type' => ucfirst($module['label_singular'] ?? Str::singular($module['name'])),
                 ];
