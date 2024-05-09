@@ -2,8 +2,6 @@
 
 namespace A17\Twill\Models\Behaviors;
 use A17\Twill\Models\Block;
-use App\Models\Service;
-use App\Models\Page;
 
 trait HasBlocks
 {
@@ -19,10 +17,13 @@ trait HasBlocks
 
     public function renderNamedBlocks($name = 'default', $renderChilds = true, $blockViewMappings = [], $data = [])
     {
-        $block_id = $this->blocks()->first() ? $this->blocks()->first()->blockable_id : 0;
+        $block_id = $this->blocks->first() ? $this->blocks->first()->blockable_id : 0;
 
-        $filtered = $this instanceof Page && in_array($block_id, [2, 3])
-                   || $this instanceof Service;
+        $itemClass = get_class($this);
+        $is_page = $itemClass == "App\\Models\\Page";
+        $is_service = $itemClass == "App\\Models\\Service";
+
+        $filtered = $is_service || ($is_page && in_array($block_id, [2, 3]));
 
         return $this->blocks
             ->filter(function ($block) use ($name) {
@@ -30,7 +31,7 @@ trait HasBlocks
                 ? ($block->editor_name === $name || $block->editor_name === null)
                 : $block->editor_name === $name;
             })
-            ->where('parent_id', null)->take($filtered ? 3 : null)
+            ->where('parent_id', null)->sortBy('position')->take($filtered ? 4 : null)
             ->map(function ($block) use ($blockViewMappings, $renderChilds, $data) {
                 if ($renderChilds) {
                     $childBlocks = $this->blocks->where('parent_id', $block->id);
