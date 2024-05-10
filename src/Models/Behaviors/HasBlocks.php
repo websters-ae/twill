@@ -31,6 +31,7 @@ trait HasBlocks
                 ? ($block->editor_name === $name || $block->editor_name === null)
                 : $block->editor_name === $name;
             })
+            ->where('type', '!=', 'header_script') // will be manually loaded later
             ->where('parent_id', null)->sortBy('position')->take($filtered ? 4 : null)
             ->map(function ($block) use ($blockViewMappings, $renderChilds, $data) {
                 if ($renderChilds) {
