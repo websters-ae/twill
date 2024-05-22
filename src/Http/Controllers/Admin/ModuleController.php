@@ -636,6 +636,7 @@ abstract class ModuleController extends Controller
         $tablePrefix = Str::singular($this->moduleName);
         $revision = $item->revisions()->where("{$tablePrefix}_revisions.id", $this->request->get('revisionId'))->first();
 
+        $date = date('Y-m-d H:i:s');
         Session::flash('restoreMessage', twillTrans('twill::lang.publisher.restore-message', ['user' => $revision->byUser, 'date' => $date]));
 
         return View::make($view, $this->form($id, $item));
