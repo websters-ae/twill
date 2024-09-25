@@ -1,6 +1,6 @@
 <template>
   <div class="nested-item">
-    <span v-for="col in columns" :key="col.name" class="nested-item__cell" :class="cellClasses(col, 'nested-item__cell')">
+    <span v-for="col in columns.filter(col => col.name !== 'countries')" :key="col.name" class="nested-item__cell" :class="cellClasses(col, 'nested-item__cell')">
       <template v-if="isSpecificColumn(col)">
         <component :is="currentComponent(col.name)"
                    v-bind="currentComponentProps(col)"
