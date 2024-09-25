@@ -11,8 +11,8 @@
     <a v-if="languages.length > 4" :href="editWithLanguage(languages[0])" @click="editInPlace($event, languages[0])" class="more__languages f--small">
         + {{ languages.length - 4 }} more
     </a>
-    <div v-if="row.countries && row.countries.length">
-      <img v-for="country in row.countries.sort((a, b) => b.id - a.id)"
+    <div v-if="row.countries && row.countries.length" class="country__flag-container">
+      <img v-for="country in sortedCountries"
         :key="country.id"
         :src="getCountryFlag(country.id)"
         :alt="getCountryName(country.id)"
@@ -72,6 +72,9 @@
       }
     },
     computed: {
+      sortedCountries: function () {
+        return this.row.countries ? [...this.row.countries].sort((a, b) => b.id - a.id) : []
+      },
       displayedLanguages: function () {
         return this.languages.slice(0, 4)
       }
@@ -125,7 +128,7 @@
     text-decoration: none;
   }
 
-  div:has(.country__flag) {
+  .country__flag-container {
     display: inline-block;
   }
 
