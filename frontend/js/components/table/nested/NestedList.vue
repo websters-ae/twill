@@ -1,41 +1,98 @@
 <template>
-  <draggable class="nested__dropArea"
-             :class="nestedDropAreaClasses"
-             v-model="rows"
-             :options="draggableOptions"
-             :tag="'ul'"
-             :component-data="draggableGetComponentData">
-    <li class="nested-datatable__item"
-        v-for="(row, index) in rows"
-        :class="haveChildren(row.children)"
-        :key="depth + '-' +  row.id">
-      <a17-nested-item :index="index"
-                       :row="row"
-                       :columns="columns"/>
-      <a17-nested-list v-if="row.children && depth < maxDepth"
-                       :maxDepth="maxDepth"
-                       :depth="depth + 1"
-                       :parentId="row.id"
-                       :items="row.children"
-                       :nested="true"
-                       :draggable="true"/>
-    </li>
-  </draggable>
+  <div class="nested__dropArea" :class="nestedDropAreaClasses">
+    <!-- Accordion wrapper only if parentId > -1 and the row has children -->
+    <a17-accordion v-if="parentId > -1 && rows.length > 0"
+      :open="open"
+      @toggleVisibility="notifyOpen"
+      :useOverrideTransition="true"
+      :beforeEnterOverride="beforeEnterOverride"
+      :enterOverride="enterOverride"
+      :beforeLeaveOverride="beforeLeaveOverride"
+      :leaveOverride="leaveOverride"
+    >
+      <span slot="accordion__title"><slot>Expand to see more</slot></span>
+      <!-- <div slot="accordion__value" v-html="currentLabel"></div> -->
+      <div class="accordion__fields">
+        <transition :css="false" :duration="275"
+                    @before-enter="beforeEnterOverride"
+                    @enter="enterOverride"
+                    @before-leave="beforeLeaveOverride"
+                    @leave="leaveOverride">
+          <draggable v-model="rows"
+                     :options="draggableOptions"
+                     :tag="'ul'"
+                     :component-data="draggableGetComponentData">
+            <li class="nested-datatable__item"
+                v-for="(row, index) in rows"
+                :class="haveChildren(row.children)"
+                :key="depth + '-' +  row.id">
+              <a17-nested-item
+                :index="index"
+                :row="row"
+                :columns="columns"
+              />
+              <a17-nested-list
+                v-if="row.children && depth < maxDepth"
+                :maxDepth="maxDepth"
+                :depth="depth + 1"
+                :parentId="row.id"
+                :items="row.children"
+                :nested="true"
+                :draggable="true"
+              />
+            </li>
+          </draggable>
+        </transition>
+      </div>
+    </a17-accordion>
+
+    <!-- Regular draggable list for parentId === -1 -->
+    <draggable v-else
+               v-model="rows"
+               :options="draggableOptions"
+               :tag="'ul'"
+               :component-data="draggableGetComponentData">
+      <li class="nested-datatable__item"
+          v-for="(row, index) in rows"
+          :class="haveChildren(row.children)"
+          :key="depth + '-' +  row.id">
+        <a17-nested-item
+          :index="index"
+          :row="row"
+          :columns="columns"
+        />
+        <a17-nested-list
+          v-if="row.children && depth < maxDepth"
+          :maxDepth="maxDepth"
+          :depth="depth + 1"
+          :parentId="row.id"
+          :items="row.children"
+          :nested="true"
+          :draggable="true"
+        />
+      </li>
+    </draggable>
+  </div>
 </template>
 
 <script>
+  import { mapState } from 'vuex'
   import { DATATABLE } from '@/store/mutations'
   import draggable from 'vuedraggable'
   import { DatatableMixin, DraggableMixin, NestedDraggableMixin } from '@/mixins/index'
   import NestedItem from './NestedItem'
 
+  import a17Accordion from '@/components/Accordion.vue'
+  import VisibilityMixin from '@/mixins/toggleVisibility'
+
   export default {
     name: 'a17-nested-list',
     components: {
       'a17-nested-item': NestedItem,
-      draggable
+      draggable,
+      a17Accordion
     },
-    mixins: [DatatableMixin, DraggableMixin, NestedDraggableMixin],
+    mixins: [DatatableMixin, DraggableMixin, NestedDraggableMixin, VisibilityMixin],
     props: {
       index: {
         type: Number,
@@ -44,6 +101,10 @@
       items: {
         type: Array,
         default: () => []
+      },
+      useOverrideTransition: {
+        type: Boolean,
+        default: false
       }
     },
     data: function () {
@@ -92,7 +153,10 @@
             name: this.name
           }
         }
-      }
+      },
+      ...mapState({
+        currentValue: state => state.parents.active
+      })
     },
     methods: {
       haveChildren: function (children) {
@@ -102,12 +166,36 @@
           // without providing a fallback value
           'nested-datatable__item--empty': (children || []).length === 0 && this.depth < this.maxDepth
         }
+      },
+      notifyOpen: function (newValue) {
+        this.$emit('open', newValue, this.$options.name)
+      },
+      beforeEnterOverride (el) {
+        el.style.maxHeight = '0px'
+      },
+      enterOverride (el, done) {
+        el.style.maxHeight = (this.$el.querySelector('.accordion__list').clientHeight + 1) + 'px'
+        el.addEventListener('transitionend', done, { once: true })
+      },
+      beforeLeaveOverride (el, done) {
+        el.style.maxHeight = (this.$el.querySelector('.accordion__list').clientHeight + 1) + 'px'
+        el.addEventListener('transitionend', done, { once: true })
+      },
+      leaveOverride (el, done) {
+        el.style.maxHeight = '0px'
+        el.addEventListener('transitionend', done, { once: true })
       }
     }
   }
 </script>
 
 <style lang="scss" scoped>
+
+  .accordion__trigger > span {
+    font-style: italic;
+    color: #d7d5d5;
+    font-size: 13px;
+  }
 
   .nested-datatable__item {
     border: 1px solid #F2F2F2;

@@ -5,7 +5,11 @@
       <span class="accordion__value"><slot name="accordion__value"></slot></span>
       <span v-svg symbol="dropdown_module"></span>
     </button>
-    <transition :css="false" :duration="275" @before-enter="beforeEnter" @before-leave="beforeLeave" @enter="enter" @leave="leave">
+    <transition :css="false" :duration="275"
+      @before-enter="beforeEnter"
+      @before-leave="beforeLeave"
+      @enter="enter"
+      @leave="leave">
       <div class="accordion__dropdown" v-show="visible" :aria-hidden="!visible">
         <div class="accordion__list">
           <slot></slot>
@@ -21,6 +25,12 @@
   export default {
     name: 'A17Accordion',
     mixins: [VisibilityMixin],
+    props: {
+      beforeEnterOverride: Function,
+      enterOverride: Function,
+      beforeLeaveOverride: Function,
+      leaveOverride: Function
+    },
     watch: {
       open: function () {
         if (this.visible !== this.open) {
@@ -33,16 +43,35 @@
         return Math.min(250, this.$el.querySelector('.accordion__list').clientHeight + 1)
       },
       beforeEnter: function (el) {
-        el.style.maxHeight = '0px'
+        if (this.beforeEnterOverride) {
+          this.beforeEnterOverride(el)
+        } else {
+          el.style.maxHeight = '0px'
+        }
       },
       enter: function (el, done) {
-        el.style.maxHeight = this.getMaxHeight() + 'px'
+        if (this.enterOverride) {
+          this.enterOverride(el, done)
+        } else {
+          el.style.maxHeight = this.getMaxHeight() + 'px'
+          el.addEventListener('transitionend', done, { once: true })
+        }
       },
       beforeLeave: function (el, done) {
-        el.style.maxHeight = this.getMaxHeight() + 'px'
+        if (this.beforeLeaveOverride) {
+          this.beforeLeaveOverride(el, done)
+        } else {
+          el.style.maxHeight = this.getMaxHeight() + 'px'
+          el.addEventListener('transitionend', done, { once: true })
+        }
       },
       leave: function (el, done) {
-        el.style.maxHeight = '0px'
+        if (this.leaveOverride) {
+          this.leaveOverride(el, done)
+        } else {
+          el.style.maxHeight = '0px'
+          el.addEventListener('transitionend', done, { once: true })
+        }
       }
     }
   }
