@@ -102,17 +102,19 @@
       },
       title: function () {
         // Get the title from the store
-        let title = this.fieldValueByName('title')
+        const title = this.fieldValueByName('title')
         const titleKsa = this.fieldValueByName('title_ksa')
         const titleKuwait = this.fieldValueByName('title_kuwait')
-        if ((typeof titleKsa === 'string' && titleKsa) || titleKsa[this.currentLocale.value]) {
-          title = titleKsa
-        }
-        if ((typeof titleKuwait === 'string' && titleKuwait) || titleKuwait[this.currentLocale.value]) {
-          title = titleKuwait
-        }
-        const titleValue = typeof title === 'string' ? title : title[this.currentLocale.value]
-        return titleValue || this.warningMessage
+        const name = this.fieldValueByName('name')
+
+        const { value: locale } = this.currentLocale
+
+        const resolveTitle = (title) =>
+          typeof title === 'string' && title ? title : title?.[locale]
+
+        const resolvedTitle = resolveTitle(titleKuwait) || resolveTitle(titleKsa) || resolveTitle(title)
+
+        return resolvedTitle || (typeof name === 'string' ? name : name?.[locale]) || this.warningMessage
       },
       permalink: function () {
         return this.fieldValueByName('slug')[this.currentLocale.value]
