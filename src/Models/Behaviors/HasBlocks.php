@@ -17,23 +17,30 @@ trait HasBlocks
 
     public function renderNamedBlocks($name = 'default', $renderChilds = true, $blockViewMappings = [], $data = [])
     {
-        $block_id = $this->blocks->first() ? $this->blocks->first()->blockable_id : 0;
-
-        $itemClass = get_class($this);
-        $is_page = $itemClass == "App\\Models\\Page";
-        $is_service = $itemClass == "App\\Models\\Service";
-
-        $filtered = $is_service || ($is_page && in_array($block_id, [2, 3]));
+        $filtered = isset($this->disable_lazyload) && $this->disable_lazyload === false;
 
         return $this->blocks
             ->filter(function ($block) use ($name) {
                 return $name === 'default'
-                ? ($block->editor_name === $name || $block->editor_name === null)
-                : $block->editor_name === $name;
+                    ? ($block->editor_name === $name || $block->editor_name === null)
+                    : $block->editor_name === $name;
             })
             ->where('type', '!=', 'header_script') // will be manually loaded later
             ->where('parent_id', null)->sortBy('position')->take($filtered ? 4 : null)
             ->map(function ($block) use ($blockViewMappings, $renderChilds, $data) {
+                $lazyload = isset($block->content['lazyload']) && $block->content['lazyload'] === true;
+                if ($block->type === 'wcarousel' && $lazyload) {
+                    $block_id = $block->id;
+                    $block_type = $block->type;
+                    $separator = '<!-- lazy loaded -->';
+
+                    $block = new Block();
+                    $block->type = 'placeholder';
+                    $block->content = [
+                        'html' => "$separator <div id='{$block_type}_{$block_id}'></div> $separator"
+                    ];
+                }
+
                 if ($renderChilds) {
                     $childBlocks = $this->blocks->where('parent_id', $block->id);
 
