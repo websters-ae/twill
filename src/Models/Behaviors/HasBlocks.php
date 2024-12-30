@@ -17,8 +17,6 @@ trait HasBlocks
 
     public function renderNamedBlocks($name = 'default', $renderChilds = true, $blockViewMappings = [], $data = [])
     {
-        $filtered = isset($this->disable_lazyload) && $this->disable_lazyload === false;
-
         return $this->blocks
             ->filter(function ($block) use ($name) {
                 return $name === 'default'
@@ -26,7 +24,7 @@ trait HasBlocks
                     : $block->editor_name === $name;
             })
             ->where('type', '!=', 'header_script') // will be manually loaded later
-            ->where('parent_id', null)->sortBy('position')->take($filtered ? 4 : null)
+            ->where('parent_id', null)->sortBy('position')->take(empty($this->disable_lazyload) ? 4 : null)
             ->map(function ($block) use ($blockViewMappings, $renderChilds, $data) {
                 $lazyload = isset($block->content['lazyload']) && $block->content['lazyload'] === true;
                 if ($block->type === 'wcarousel' && $lazyload) {
