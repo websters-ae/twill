@@ -26,8 +26,9 @@ trait HasBlocks
             ->where('type', '!=', 'header_script') // will be manually loaded later
             ->where('parent_id', null)->sortBy('position')->take(empty($this->disable_lazyload) ? 4 : null)
             ->map(function ($block) use ($blockViewMappings, $renderChilds, $data) {
-                $lazyload = isset($block->content['lazyload']) && $block->content['lazyload'] === true;
-                if ($block->type === 'wcarousel' && $lazyload) {
+
+                // Wcarousels are now lazy loaded by default
+                if ($block->type === 'wcarousel') {
                     $block_id = $block->id;
                     $block_type = $block->type;
                     $separator = '<!-- lazy loaded -->';
