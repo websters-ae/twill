@@ -55,7 +55,17 @@ trait HasFiles
         }
 
         if ($file) {
-            return FileService::getUrl($file->uuid);
+            $url = FileService::getUrl($file->uuid);
+
+            // Check if we're in the production environment
+            if (app()->environment('production')) {
+                // Force HTTPS for production
+                if ($url && strpos($url, 'http://') === 0) {
+                    $url = preg_replace('/^http:/i', 'https:', $url);
+                }
+            }
+
+            return $url;
         }
 
         return null;
