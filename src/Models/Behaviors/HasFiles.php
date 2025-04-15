@@ -65,10 +65,31 @@ trait HasFiles
                 }
             }
 
-            return $url;
+            // Encode only the filename (e.g., The Healthy® Video.mp4 -> The%20Healthy%C2%AE%20Video.mp4)
+            $url = $this->encodeFilenameOnly($url);
         }
 
         return null;
+    }
+
+    protected function encodeFilenameOnly(string $url): string
+    {
+        $parts = parse_url($url);
+
+        if (!isset($parts['path'])) {
+            return $url;
+        }
+
+        $dirname = rtrim(dirname($parts['path']), '/');
+        $basename = basename($parts['path']);
+        $encoded = rawurlencode($basename);
+
+        $rebuilt = $dirname . '/' . $encoded;
+
+        return (isset($parts['scheme']) ? $parts['scheme'] . '://' : '') .
+            (isset($parts['host']) ? $parts['host'] : '') .
+            $rebuilt .
+            (isset($parts['query']) ? '?' . $parts['query'] : '');
     }
 
     /**
