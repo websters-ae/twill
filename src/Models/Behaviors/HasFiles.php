@@ -63,10 +63,12 @@ trait HasFiles
                 if ($url && strpos($url, 'http://') === 0) {
                     $url = preg_replace('/^http:/i', 'https:', $url);
                 }
+
+                // Encode only the filename (e.g., The Healthy® Video.mp4 -> The%20Healthy%C2%AE%20Video.mp4)
+                $url = $this->encodeFilenameOnly($url);
             }
 
-            // Encode only the filename (e.g., The Healthy® Video.mp4 -> The%20Healthy%C2%AE%20Video.mp4)
-            $url = $this->encodeFilenameOnly($url);
+            return $url;
         }
 
         return null;
