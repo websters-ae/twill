@@ -92,12 +92,12 @@
       },
       fullUrl: function () {
         return this.customPermalink || this.baseUrl
-          .replace('{language}', this.currentLocale.value)
+          .replace('{language}', this.langCountry)
           .replace('{preview}/', this.published ? '' : 'admin-preview/') + this.permalink
       },
       visibleUrl: function () {
         return this.customPermalink || this.baseUrl
-          .replace('{language}', this.currentLocale.value)
+          .replace('{language}', this.langCountry)
           .replace('{preview}/', '') + this.permalink
       },
       title: function () {
@@ -119,9 +119,19 @@
       permalink: function () {
         return this.fieldValueByName('slug')[this.currentLocale.value]
       },
+      langCountry: function () {
+        const countries = this.countries?.value
+        if (!countries || countries.length !== 1) {
+          return this.currentLocale.value
+        }
+        const countryMap = { 231: 'ae', 194: 'sa', 117: 'kw' }
+        const countryCode = countryMap[countries[0]] || ''
+        return [this.currentLocale.value, countryCode].filter(Boolean).join('/')
+      },
       ...mapState({
         baseUrl: state => state.form.baseUrl,
         currentLocale: state => state.language.active,
+        countries: state => state.form.fields.find(field => field.name === 'countries'),
         languages: state => state.language.all,
         fields: state => state.form.fields,
         published: state => state.publication.published
